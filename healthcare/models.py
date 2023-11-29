@@ -28,20 +28,19 @@ class Patient(models.Model):
 	healthHistory = models.CharField(max_length = 500, default = '', blank = True, null = True)
 
 	def __str__(self):
-		return {self.healthHistory}
+		return self.healthHistory
 
 
 
 
 class User(models.Model):
-	"""docstring for user"""
 
 	name = models.CharField(max_length = 50)
 	password = models.CharField(max_length = 100)
 	email = models.EmailField(max_length=100)
 
 
-	def __str__(self, arg):
+	def __str__(self):
 		return self.name
 
 		
