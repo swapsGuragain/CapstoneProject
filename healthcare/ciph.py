@@ -27,7 +27,5 @@ def getGenderBin(gender):
 
 
 def getGender(gender):
-	line = gender
-	for i in range(2, len(line), 3):
-		gender = line[i]
-	return gender
+	line = gender[2]
+	return line

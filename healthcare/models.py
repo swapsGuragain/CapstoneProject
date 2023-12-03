@@ -28,7 +28,8 @@ class Patient(models.Model):
 	healthHistory = models.CharField(max_length = 500, default = '', blank = True, null = True)
 
 	def __str__(self):
-		return self.healthHistory
+
+		return f"{self.firstName},{self.lastName},{self.age},{self.gender},{self.weight},{self.height},{self.healthHistory}"
 
 
 

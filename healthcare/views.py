@@ -7,7 +7,11 @@ from django.contrib.auth.forms import UserCreationForm
 from datetime import datetime
 
 def home(request):
-	return render(request, 'home.html', {})
+
+	patients = Patient.objects.all()
+	print(patients[1])
+
+	return render(request, 'home.html', {'patients': patients})
 
 def tables(request):
 	return render(request, 'tables.html', {})
