@@ -12,77 +12,57 @@
                                 <div class="card shadow-lg border-0 rounded-lg mt-5">
                                     <div class="card-header"><h3 class="text-center font-weight-light my-4">Add New Patient</h3></div>
                                     <div class="card-body">
-                                        <form method="POST" action="{% url 'addPatients' %}">
+                                        <form method="POST" action="{% url 'addUser' %}">
                                             {% csrf_token %} 
                                               <div class="form-floating mb-3">
                                                   <div class="row">
                                                     <div class="col-3">
-                                                      <label for="fname">First Name</label>
+                                                      <label for="fname">Name</label>
                                                     </div>
                                                     <div class="col-9">
-                                                      <input class="form-control" style="width: 100%;" id="firstname" type="text" name="firstname" placeholder="Your first name.."/>
+                                                      <input class="form-control" style="width: 100%;" id="name" type="text" name="name" placeholder="name"/>
                                                     </div>
                                                   </div>
-                                              </div>
-                                              <div class="form-floating mb-3">
-                                                <div class="row">
-                                                    <div class="col-3">
-                                                      <label for="lname">Last Name</label>
-                                                    </div>
-                                                    <div class="col-9">
-                                                      <input class="form-control" style="width: 100%;" id="lastname" type="text" name="lastname" placeholder="Your last name.."/>
-                                                    </div>
-                                                </div>
                                               </div>
                                               <div class="form-floating mb-3">
                                                 <div class="row">
                                                   <div class="col-3">
-                                                    <label for="dob">Date Of Birth</label>
+                                                    <label for="gender">Email</label>
                                                   </div>
                                                   <div class="col-9">
-                                                   <input class="form-control" style="width: 30%;" id="dob" type="date" name="dob"/>
+                                                    <input class="form-control" style="width: 100%;" id="gender" type="email" name = "email" placeholder="Email id" />
                                                   </div>
                                                 </div>
                                               </div>
                                               <div class="form-floating mb-3">
                                                 <div class="row">
                                                   <div class="col-3">
-                                                    <label for="gender">Gender</label>
+                                                    <label for="weight">Password</label>
                                                   </div>
                                                   <div class="col-9">
-                                                    <input class="form-control" style="width: 100%;" id="gender" type="text" name = "gender" placeholder="Male/Female.." />
-                                                  </div>
-                                                </div>
-                                              </div>
-                                              <div class="form-floating mb-3">
-                                                <div class="row">
-                                                  <div class="col-3">
-                                                    <label for="weight">Weight</label>
-                                                  </div>
-                                                  <div class="col-9">
-                                                    <input class="form-control" style="width: 100%;" id="weight" type="number" name="weight" placeholder="Your weight.." />
+                                                    <input class="form-control" style="width: 100%;" id="weight" type="password" name="password" placeholder="Password" />
                                                   </div> 
                                                 </div>
                                               </div>
                                               <div class="form-floating mb-3">
                                                 <div class="row">
                                                   <div class="col-3">
-                                                    <label for="height">Height</label>
+                                                    <label for="height">Health Worker</label>
                                                   </div>
                                                   <div class="col-9">
-                                                    <input class="form-control" style="width: 100%;" id="height" type="text" name="height" placeholder="Your height..">
+                                                    <input id="height" type="checkbox" name="healthWorker" placeholder="Your height.." value="H">
                                                   </div>
                                                 </div> 
                                               </div>
                                               <div class="form-floating mb-3">
                                                 <div class="row">
                                                   <div class="col-3">
-                                                    <label  for="Health Histroy">Health Histroy</label>
+                                                    <label for="height">Researcher</label>
                                                   </div>
                                                   <div class="col-9">
-                                                    <input class="form-control" style="width: 100%;" id="helhis" type="text" name="helhis" placeholder="Health Histroy..">
+                                                    <input id="height" type="checkbox" name="researcher" placeholder="Your height.." value="R">
                                                   </div>
-                                                </div>  
+                                                </div> 
                                               </div>
                                             <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
                                                 <button class="btn btn-secondary" type="submit" >Add</button>
