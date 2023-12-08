@@ -10,7 +10,7 @@ import base64
 from django.db import connections
 import mysql.connector
 
-def checkDups(fName, lName, hHistory):
+def checkDups(fName, lName):
 
 	cursor = connections['default'].cursor()
 	queryDup = 'SELECT * FROM patients;'	
@@ -18,44 +18,11 @@ def checkDups(fName, lName, hHistory):
 	result = cursor.fetchall()
 
 	for patient in result:
-		patientThis = list(patient)
-		keyVal = patientThis[7]
-
-
-		# patientThis[1] = wordDec(patientThis[1], keyVal) #firstname
-		# patientThis[2] = wordDec(patientThis[2], keyVal) #lastname
-		# patientThis[3] = getGender(patientThis[3])
-		# patientThis[4] = realWeight(patientThis[4])
-		# patientThis[5] = realHeight(patientThis[5])
-		# patientThis[6] = wordDec(patientThis[6], keyVal) #healthHistory
-		# patientThis[7] = wordDec(patientThis[7], keyVal) #dob
-
-
-		try:
-			patientThis[1] = wordDec(bytes(patientThis[1], 'utf-8'), keyVal) #firstname
-			patientThis[2] = wordDec(bytes(patientThis[2], 'utf-8'), keyVal) #lastname
-			patientThis[3] = getGender(patientThis[3])
-			patientThis[4] = realWeight(patientThis[4])
-			patientThis[5] = realHeight(patientThis[5])
-			patientThis[6] = wordDec(bytes(patientThis[6], 'utf-8'), keyVal) #healthHistory
-			if patient[1] == fName and patient[2] == lName and patient[6] == hHistory:
-				return True
-			else:
-				return False
-		except:
-			for i in patientThis:
-				if i == None:
-					i = 0
-			patientThis[1] = wordDec(patientThis[1], keyVal)
-			patientThis[2] = wordDec(patientThis[2], keyVal)
-			patientThis[3] = getGender(patientThis[3])
-			patientThis[4] = realWeight(patientThis[4])
-			patientThis[5] = realHeight(patientThis[5])
-			patientThis[6] = wordDec(patientThis[6], keyVal)
-			if patient[1] == fName and patient[2] == lName and patient[6] == hHistory:
-				return True
-			else:
-				return False
+		patient = decryptResultData(patient)
+		if patient[0] == fName and patient[1] == lName:
+			return True
+		else:
+			return False
 
 def decryptPatientData(patientThis, keyVal):
 	try:
@@ -65,23 +32,31 @@ def decryptPatientData(patientThis, keyVal):
 		patientThis.gender = getGender(patientThis.gender) #gender 
 		patientThis.weight = realWeight(patientThis.weight) #weight
 		patientThis.height = realHeight(patientThis.height) #height
+		patientThis.dob = wordDecrypt(patientThis.dob, keyVal[0]) #height
 		return patientThis
 	except:
 		return patientThis
 
 def decryptResultData(patientThis):
-	try:
-		print(patientThis[1])
-		patientThis[1] = wordDec(patientThis[1], patientThis[7]) #firstname
-		# patientThis[2] = wordDec(patientThis.lastName, patientThis[7]) #lastname
-		# patientThis[6] = wordDec(patientThis.healthHistory, patientThis[7]) #healthHistory
-		# patientThis[3] = getGender(patientThis[3]) #gender 
-		# patientThis[4] = realWeight(patientThis[4]) #weight
-		# patientThis[5] = realHeight(patientThis[5]) #height
-		print('got here')
-		return patientThis
-	except:
-		return patientThis
+	firstName1 = wordDec(patientThis[1], patientThis[7]) #firstname
+	lastName1 = wordDec(patientThis[2], patientThis[7]) #lastname
+	healthHistory1 = wordDec(patientThis[6], patientThis[7]) #healthHistory
+	gender1 = getGender(patientThis[3]) #gender 
+	weight1 = realWeight(patientThis[4]) #weight
+	height1 = realHeight(patientThis[5]) #height
+	dob1 = wordDec(patientThis[8], patientThis[7]) #height
+	patientThis = (firstName1, lastName1, gender1, weight1, height1, healthHistory1, dob1, patientThis[7])
+	return patientThis
+
+def decryptPatient(patientThis, keyVal):
+	patientThis.firstName = wordDecrypt(patientThis.firstName, keyVal) #firstname
+	patientThis.lastName = wordDecrypt(patientThis.lastName, keyVal) #lastname
+	patientThis.healthHistory = wordDecrypt(patientThis.healthHistory, keyVal) #healthHistory
+	patientThis.dob = wordDecrypt(patientThis.dob, keyVal) #healthHistory
+	patientThis.gender = getGender(patientThis.gender) #gender 
+	patientThis.weight = realWeight(patientThis.weight) #weight
+	patientThis.height = realHeight(patientThis.height) #height
+	return patientThis
 
 def encrypt_pwd(pwd):
 	sha_signature = \
@@ -112,7 +87,7 @@ def getGenderBin(gender):
 
 
 def getGender(gender):
-	if gender[2] == 1:
+	if gender[2] == '1':
 		line = 'Male'
 	else:
 		line = 'Female'
@@ -152,17 +127,31 @@ def wordEnc(pwd, key):
 
 
 def wordDec(pwd, key):
-
 	key = bytes(key, 'utf-8')
 	cipher_suite = Fernet(key)
 	try:
-		print(pwd, "hhhhhhhhhhhhhhhhhhhhhhhhhhhh")
 		pwd = pwd.encode()
 		decPwd = cipher_suite.decrypt(pwd)
 	except:
 		pwd = bytes(pwd, 'utf-8')
-
-		print(pwd, "[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]")
 		decPwd = cipher_suite.decrypt(pwd)
 	decPwd = str(decPwd, encoding='utf-8')
 	return decPwd
+
+def wordDecrypt(pwd, key):
+	key = bytes(key, 'utf-8')
+	pwd = bytes(pwd, 'utf-8')
+	cipher_suite = Fernet(key)
+	decPwd = cipher_suite.decrypt(pwd)
+	decPwd = str(decPwd, encoding='utf-8')
+	return decPwd
+
+
+
+
+
+
+
+
+
+

@@ -18,16 +18,18 @@
         <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
             <!-- Navbar Brand-->
             <a class="navbar-brand ps-3" href="{% url 'home' %}"><b>DSP HealthCare</b></a>
-            {% if user.is_authenticated %}
+            {% if user.is_authenticated and isH %}
             <!-- check for access to add neww patients role H -->
             <a class="navbar-brand ps-1 small" href="{% url 'addPatients' %}"> Add new Patients </a>
+            {% endif %}
+            {% if user.is_authenticated and isH and isR %}
             <a class="navbar-brand ps-1 small" href="{% url 'addUser' %}"> Add new User </a>
 
             {% endif %}
-            <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">
+            <form method='POST' class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">
                 <div class="input-group">
-                    <input class="form-control" type="text" placeholder="Search for..." aria-label="Search for..." aria-describedby="btnNavbarSearch" />
-                    <button class="btn btn-primary" id="btnNavbarSearch" type="button"><i class="fas fa-search"></i></button>
+                    <input class="form-control" type="text" name="startWeight" placeholder="Search for..." aria-label="Search for..." aria-describedby="btnNavbarSearch" />
+                    <button class="btn btn-primary" id="btnNavbarSearch" type="submit"><i class="fas fa-search"></i></button>
                 </div>
             </form>
             <!-- Navbar-->

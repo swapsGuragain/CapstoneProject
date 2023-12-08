@@ -11,10 +11,24 @@
               <div class="row justify-content-center">
                 <div class="col-lg-12">
                     <div class="card shadow-lg border-0 rounded-lg mt-5">
-                      <div class="card-header"><h3 class="text-center font-weight-light my-4">Add New Patient</h3></div>
+                      <div class="card-header"><h3 class="text-center font-weight-light my-4">Patient Details</h3></div>
                       <div class="card-body">
-                        
-                      </div>
+                          <h5>
+                            Personal Details
+                          </h5>
+                          <h6>First Name: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ patient.firstName }}</h6>
+                          <h6>Last Name: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ patient.lastName }}</h6>
+                          <h6>Date of birth: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ patient.dob }}</h6>
+                          <h6>Age: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ patient.age }}</h6>
+                          <h6>Gender: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ patient.gender }}</h6>
+                        <br><br>
+                          <h5>
+                            Health history
+                          </h5>
+                          <h6>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ patient.healthHistory }}</h6>
+                        <br><br>
+                        <h6>Weight: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ patient.weight }} lb</h6>
+                        <h6>Height: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ patient.height }} cm</h6>
                     </div>
                 </div>
               </div>
