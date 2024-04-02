@@ -1,251 +1,654 @@
 from django.shortcuts import render, redirect
-from .models import Patient, User
+from .models import Patient, Doctor, Appointment
+from .ciph import wordEnc, orderedNumber, getGenderBin, decryptDoctor, decryptPatient, decryptAppointment
 
-from django.db import connections
-import mysql.connector
-
-from .ciph import getAge, getGender, getGenderBin, orderedWeight, orderedHeight, encrypt_pwd, wordEnc, checkDups, decryptPatientData, decryptResultData, decryptPatient
 from cryptography.fernet import Fernet
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import Group, User
+from django.contrib.auth.decorators import login_required, user_passes_test
 
 from datetime import datetime
 
-import pandas as pd
+# Check the group for user
+def has_group(user, group):
+    return user.groups.filter(name=group).exists()
 
-import csv
-from django.http import HttpResponse
+def is_admin(user):
+    return user.is_staff
+def is_doctor(user):
+    return user.groups.filter(name='doctor').exists()
+def is_patient(user):
+    return user.groups.filter(name='patient').exists()
 
-authenticatedUser = False
-isH = False
-isR = False
+# View for everyone
 
 def home(request):
-	global authenticatedUser, isH, isR
-	if not request.user.is_authenticated:
-		messages.success(request, ('You need to login first!'))
-		return redirect('login')
-
-	if request.method == 'POST':
-		weight01 = orderedWeight(request.POST.get('startWeight'))
-		weight02 = orderedWeight(request.POST.get('endWeight'))
-
-		cursor = connections['default'].cursor()
-		qKeyVal = 'SELECT keyValues FROM patients WHERE weight between %s and %s;'	
-		keyVal = cursor.execute(qKeyVal, [weight01, weight02])
-		keyVal = cursor.fetchall()
-
-		patients = Patient.objects.filter(weight__range=(weight01, weight02))
-
-		i = 0
-		for patient in patients:
-			patient = decryptPatientData(patient, keyVal[i])
-			patient.age = getAge(patient.dob)
-			i = i+1
-
-		return render(request, 'home.html', {'patients': patients, 'isHealthWorker': isH, 'isResearcher': isR})
-
-	if request.method == 'FETCH':
-		response = HttpResponse(content_type="text/csv")
-		writer = csv.writer(response)
-		writer.writerow(["Dob", "Gender", "Weight", "Height", "Health_history"])
-		for patient in Patient.objects.all().values_list('dob', 'gender', 'weight', 'height', 'healthHistory'):
-			writer.writerow(patient)
-		response['Content-Disposition'] = 'attachment; filename="patients.csv"'
-		return response
-	cursor = connections['default'].cursor()
-	queryCompleteness = 'SELECT COUNT(*) FROM patients;'	
-	result = cursor.execute(queryCompleteness)
-	result = cursor.fetchall()
-
-	queryCompleteness = 'SELECT keyValues FROM patients;'	
-	keyVal = cursor.execute(queryCompleteness)
-	keyVal = cursor.fetchall()
-
-	patients = Patient.objects.all()
-
-	i = 0
-	for patient in patients:
-		patient = decryptPatientData(patient, keyVal[i])
-		patient.age = getAge(patient.dob)
-		i = i+1
-
-	if result[0][0] > patients.count():
-		messages.success(request, ("There has been some type of alteration in the cloud database. The query result is incomplete. Some data items from the database are missing."))
-	elif result[0][0] < patients.count():
-		messages.success(request, ("There has been alteration in cloud database. The query result is overfitted. Some dataitems may have duplicates."))
-	else:
-		return render(request, 'home.html', {'patients': patients, 'isHealthWorker': isH, 'isResearcher': isR})
-	
-	return render(request, 'home.html', {'patients': patients, 'isHealthWorker': isH, 'isResearcher': isR})
-
-def patient(request, pk):
-	global authenticatedUser, isH, isR
-	if not request.user.is_authenticated:
-		messages.success(request, ('You need to login first!'))
-		return redirect('login')
-	if isH != True:
-		messages.success(request, ('You have no access to add new patients!'))
-		return redirect('home')
-	cursor = connections['default'].cursor()
-	queryCompleteness = 'SELECT * FROM patients WHERE id = %s;'	
-	result = cursor.execute(queryCompleteness, pk)
-	result = cursor.fetchall()
-
-	result = decryptResultData(result[0])
-
-	# # check each details of the user in the both databse then only render else alert user
-
-	patient = Patient.objects.get(id = pk)
-	patient = decryptPatient(patient, result[7])
-	patient.age = getAge(patient.dob)
-
-	if result[0] != patient.firstName:
-		messages.success(request, ('first name has been changed'))
-	elif result[1] != patient.lastName:
-		messages.success(request, ('last name has been changed'))
-	elif result[2] != patient.gender:
-		messages.success(request, ('gender data has been changed'))
-
-	elif result[3] != patient.weight:
-		messages.success(request, ('weight data has been changed'))
-
-	elif result[4] != patient.height:
-		messages.success(request, ('height data has been changed'))
-
-	elif result[5] != patient.healthHistory:
-		messages.success(request, ('Health history has been changed'))
-
-	elif result[6] != patient.dob:
-		messages.success(request, ('date of birth has been changed'))
-	else:
-		messages.success(request, ('Patient found!'))
-
-	return render(request, 'patient.html', {'patient': patient, 'isHealthWorker': isH, 'isResearcher': isR})
-
-def tables(request):
-	global authenticatedUser, isH, isR
-	if not request.user.is_authenticated:
-		messages.success(request, ('You need to login first!'))
-		return redirect('login')
-	if isR != True:
-		messages.success(request, ('You have no access to table data!'))
-		return redirect('home')
-	checkDups('Sourav', 'Thapa', 'muscle ache')
-	return render(request, 'tables.html', {'isHealthWorker': isH, 'isResearcher': isR})
+	return render(request, 'home.html')
 
 def login_user(request):
-	global authenticatedUser, isH, isR
+	error = ""
 	if request.method == "POST":
-		username =  request.POST['username']
-		password = request.POST['password']
+		u =  request.POST['username']
+		p = request.POST['password']
+		user = authenticate(username=u, password=p)
+		try:
+			if user.is_authenticated:
+				login(request, user)
+				error = "no"
+			else:
+				error = "yes"
+		except:
+			error = "yes"
+	d = {'error': error}
+	return render(request, 'login.html', d)
 
-		user = authenticate(request, username=username, password=password)
+def tables(request):
+	if not request.user.is_authenticated:
+		messages.success(request, ('You need to login first!'))
+		return redirect('login')
+	return render(request, 'tables.html', {})
 
-		cursor = connections['default'].cursor()
-		queryUser = 'SELECT * FROM healthcare_user WHERE name = %s;'	
-		uSer = cursor.execute(queryUser, username)
-		uSer = cursor.fetchall()
+def	contact(request):
+	return render(request, 'contact.html', {})
 
-		if uSer[0][4] == 1:
-			global isH 
-			isH = True 
+def	about(request):
+	return render(request, 'about.html', {})
 
-		if uSer[0][5] == 1:
-			global isR
-			isR = True 
-
-		if user is not None:
+def guestRegister_patient(request):
+	if request.method == "POST":
+		form = UserCreationForm(request.POST)
+		if form.is_valid():
+			user = form.save()
+			user.save()
+			user_group = Group.objects.get(name='patient') 
+			user.groups.add(user_group)
 			login(request, user)
-			messages.success(request, ("You have successuflly logged in!!"))
-			authenticatedUser = True
-			return redirect('home')
-		else:
-			messages.success(request, ("There was an error while logging in!!"))
-			return redirect('login')
-
+			messages.success(request, user.id)
+			return redirect('guestAddPatient', user.id)
 	else:
-		return render(request, 'login.html', {'isHealthWorker': isH, 'isResearcher': isR})
+		form = UserCreationForm()
+	return render(request, 'guestRegister_patient.html', {'form':form})
+
+# View for admin
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def	index(request):
+	if not request.user.is_staff:
+		redirect('login')
+	doc = Doctor.objects.all()
+	patients = Patient.objects.all()
+	appoint = Appointment.objects.all()
+	# decrypt doc
+	for do in doc:
+		do = decryptDoctor(do)
+	# decrypt patient
+	for pa in patients:
+		pa = decryptPatient(pa)
+	# decrypt appoinntment
+	for ap in appoint:
+		ap = decryptAppointment(ap)
+	d = {'d':doc.count(), 'p':patients.count(), 'a':appoint.count()}
+	return render(request, 'index.html', d)
 
 def logout_user(request):
+	if not request.user.is_authenticated:
+		return redirect('login')
 	logout(request)
-	global authenticatedUser, isH, isR
-	authenticatedUser = False
-	isH = False
-	isR = False
-	messages.success(request, ("You have been logged out!!"))
 	return redirect('login')
 
-def addPatients(request):
-	global authenticatedUser, isH, isR
+# Admin - patient views
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def register_user(request):
+	if request.method == "POST":
+		form = UserCreationForm(request.POST)
+		if form.is_valid():
+			user = form.save()
+			user.save()
+			user_group = Group.objects.get(name='patient') 
+			user.groups.add(user_group)
+			messages.success(request, user.id)
+			return redirect('addPatient_pk', user.id)
+	else:
+		form = UserCreationForm()
+	return render(request, 'register.html', {'form':form})
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def register_doc(request):
+	if request.method == 'POST':
+		form = UserCreationForm(request.POST)
+		if form.is_valid():
+			user = form.save()
+			user.save()
+			user_group = Group.objects.get(name='doctor') 
+			user.groups.add(user_group)
+			return redirect('addDoctor_pk', user.id)
+	else:
+		form = UserCreationForm()
+	return render(request, 'register_doc.html', {'form':form})
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def addPatient_pk(request, pk):
+	error = ""
+	if not request.user.is_authenticated:
+		return redirect('login')
+	if request.method == "POST":
+		fName = request.POST.get('fName')
+		lName = request.POST.get('lName')
+		address = request.POST.get('address')
+		contact = request.POST.get('contact')
+		dob = request.POST.get('dob')
+		gender = request.POST.get('gender')
+		weight = request.POST.get('weight')
+		height = request.POST.get('height')
+		healthHistory = request.POST.get('helhis')
+		medication = request.POST.get('medication')
+		patient01 = User.objects.get(id=pk)
+		# encrypt patient data here 
+		key_value = Fernet.generate_key()
+		fName = wordEnc(fName, key_value).decode()
+		lName = wordEnc(lName, key_value).decode()
+		address = wordEnc(address, key_value).decode()
+		contact = wordEnc(contact, key_value).decode()
+		dob = wordEnc(dob, key_value).decode()
+		healthHistory = wordEnc(healthHistory, key_value).decode()
+		medication = wordEnc(medication, key_value).decode()
+		weight = orderedNumber(weight)
+		height = orderedNumber(height)
+		gender = getGenderBin(gender)
+		key_value = key_value.decode()
+		try:
+			Patient.objects.create(user = patient01, firstName = fName, lastName = lName, address = address, contact = contact, dob = dob, gender = gender, weight = weight, height = height, healthHistory = healthHistory, medication = medication, key_value = key_value)
+			error = "no"
+		except:
+			error = "yes"
+	d = {'error':error, 'id': pk}
+	return render(request, 'addPatient_pk.html', d)
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def addPatient(request):
+	error = ""
+	if not request.user.is_authenticated:
+		return redirect('login')
+	if request.method == "POST":
+		fName = request.POST.get('fName')
+		lName = request.POST.get('lName')
+		address = request.POST.get('address')
+		contact = request.POST.get('contact')
+		dob = request.POST.get('dob')
+		gender = request.POST.get('gender')
+		weight = request.POST.get('weight')
+		height = request.POST.get('height')
+		healthHistory = request.POST.get('helhis')
+		medication = request.POST.get('medication')
+		appointment = request.POST.get('appointment')
+		patientId = request.POST.get('patient')
+		patient01 = User.objects.get(id=patientId)
+		# encrypt patient data here 
+		key_value = Fernet.generate_key()
+		fName = wordEnc(fName, key_value).decode()
+		lName = wordEnc(lName, key_value).decode()
+		address = wordEnc(address, key_value).decode()
+		contact = wordEnc(contact, key_value).decode()
+		dob = wordEnc(dob, key_value).decode()
+		healthHistory = wordEnc(healthHistory, key_value).decode()
+		medication = wordEnc(medication, key_value).decode()
+		weight = orderedNumber(weight)
+		height = orderedNumber(height)
+		gender = getGenderBin(gender)
+		key_value = key_value.decode()
+		try:
+			Patient.objects.create(user = patient01, firstName = fName, lastName = lName, address = address, contact = contact, dob = dob, gender = gender, weight = weight, height = height, healthHistory = healthHistory, medication = medication, key_value = key_value)
+			error = "no"
+		except:
+			error = "yes"
+	d = {'error':error}
+	return render(request, 'addPatient.html', d)
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def patientsList(request):
+	if not request.user.is_authenticated:
+		return redirect('login')
+	patients = Patient.objects.all()
+	# decrypt patient 
+	for pa in patients:
+		pa = decryptPatient(pa)
+	d = {'patients': patients}
+	return render(request, 'patientsList.html', d)
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def patient(request, pk):
 	if not request.user.is_authenticated:
 		messages.success(request, ('You need to login first!'))
 		return redirect('login')
-	if isH != True:
-		messages.success(request, ('You have no access to add new patients!'))
-		return redirect('home')
+	patient = Patient.objects.get(id = pk)
+	appt = Appointment.objects.all().filter(patient_id=pk)
+	docId=[]
+	for a in appt:
+		docId.append(a.doctor_id)
+	doc = Doctor.objects.all().filter(id__in = docId)
+	# decrypt doc
+	for do in doc:
+		do = decryptDoctor(do)
+	# decrypt patient
+	patient = decryptPatient(patient)
+	# decrypt appoinntment
+	for ap in appt:
+		ap = decryptAppointment(ap)
+	d = {'doc': doc, 'appot': appt, 'patient': patient}
+	return render(request, 'patient.html', d)
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def deletePatient(request, pk):
+	if not request.user.is_authenticated:
+		return redirect('login')
+	pat = Patient.objects.get(id=pk)
+	pat.delete()
+	return redirect('patientsList')
+
+# Admin - doctor views
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def addDoctor(request):
+	error = ""
+	if not request.user.is_authenticated:
+		return redirect('login')
 	if request.method == "POST":
-		firstName0 = request.POST.get('firstname')
-		lastName0 = request.POST.get('lastname')
-		dob0 = request.POST.get('dob')
-		age = getAge(dob0)
-		gender = getGenderBin(request.POST.get('gender'))
-		weight = orderedWeight(request.POST.get('weight'))
-		height = orderedHeight(request.POST.get('height'))
-		healthHistory0 = request.POST.get('helhis')
-		keyValue = Fernet.generate_key()
-		firstName = wordEnc(firstName0, keyValue)
-		lastName = wordEnc(lastName0, keyValue)
-		dob = wordEnc(dob0, keyValue)
-		healthHistory = wordEnc(healthHistory0, keyValue)
+		fName = request.POST.get('fName')
+		lName = request.POST.get('lName')
+		spec = request.POST.get('spec')
+		phone = request.POST.get('phone')
+		doctorId = request.POST.get('doctor')
+		doctor01 =  User.objects.get(id=doctorId)
+		# encrypt doc data here
+		key_value = Fernet.generate_key()
+		fName = wordEnc(fName, key_value).decode()
+		lName = wordEnc(fName, key_value).decode()
+		spec = wordEnc(spec, key_value).decode()
+		phone = wordEnc(phone, key_value).decode()
+		key_value = key_value.decode()
+		try:
+			doc = Doctor(user = doctor01, firstName = fName, lastName = lName, speciality = spec, phone = phone, key_value = key_value)
+			doc.save()
+			error = "no"
+		except:
+			error = "yes"
+	d = {'error':error}
+	return render(request, 'addDoctor.html', d)
 
-		cursor = connections['default'].cursor()
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def addDoctor_pk(request, pk):
+	error = ""
+	if not request.user.is_authenticated:
+		return redirect('login')
+	if request.method == "POST":
+		fName = request.POST.get('fName')
+		lName = request.POST.get('lName')
+		spec = request.POST.get('spec')
+		phone = request.POST.get('phone')
+		doctor01 =  User.objects.get(id=pk)
+		# encrypt doc data here
+		key_value = Fernet.generate_key()
+		fName = wordEnc(fName, key_value).decode()
+		lName = wordEnc(lName, key_value).decode()
+		spec = wordEnc(spec, key_value).decode()
+		phone = wordEnc(phone, key_value).decode()
+		key_value = key_value.decode()
+		try:
+			doc = Doctor(user = doctor01, firstName = fName, lastName = lName, speciality = spec, phone = phone, key_value = key_value)
+			doc.save()
+			error = "no"
+		except:
+			error = "yes"
+	d = {'error':error, 'id': pk}
+	return render(request, 'addDoctor_pk.html', d)
 
-		if checkDups(firstName0, lastName0):
-			messages.success(request, ("User already exists!"))
-			return redirect('home')
 
-		newPatient = Patient(firstName = firstName.decode(), lastName = lastName.decode(), dob = dob.decode(), gender = gender, weight = weight, height = height, healthHistory = healthHistory.decode())
-		newPatient.save()
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def viewDoctor(request):
+	if not request.user.is_authenticated:
+		return redirect('login')
+	doc = Doctor.objects.all()
+	# decrypt doc data here
+	for do in doc:
+		do = decryptDoctor(do)
+	d = {'doc': doc}
+	return render(request, 'viewDoctor.html', d)
 
-		query1 = 'INSERT INTO patients (first_name, last_name, dob, gender, weight, height, health_history, keyValues) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);'
-		cursor.execute(query1, [firstName, lastName, dob, gender, weight, height, healthHistory, keyValue])
-		
-		messages.success(request, ("successuflly added new Patient "+firstName0))
-		return redirect('home')
-
-	return render(request, 'addPatients.html', {'isHealthWorker': isH, 'isResearcher': isR})
-
-def addUser(request):
-	global authenticatedUser, isH, isR
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def doctor(request, pk):
 	if not request.user.is_authenticated:
 		messages.success(request, ('You need to login first!'))
 		return redirect('login')
-	if isH != True:
-		messages.success(request, ('You have no access to add new patients!'))
-		return redirect('home')
+	doc = Doctor.objects.get(id = pk)
+	appt = Appointment.objects.all().filter(doctor_id=pk)
+	patientid=[]
+	for a in appt:
+		patientid.append(a.patient_id)
+	patient = Patient.objects.all().filter(id__in = patientid)
+	# decrypt doc
+	doc = decryptDoctor(doc)
+	# decrypt patient
+	for pa in patient:
+		pa = decryptPatient(pa)
+	# decrypt appoinntment
+	for ap in appt:
+		ap = decryptAppointment(ap)
+	d = {'doc': doc, 'appot': appt, 'patient': patient}
+	return render(request, 'doctor.html', d)
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def deleteDoctor(request, pk):
+	if not request.user.is_authenticated:
+		return redirect('login')
+	doc = Doctor.objects.get(id=pk)
+	doc.delete()
+	return redirect('viewDoctor')
+
+# Admin - appointment view
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def addAppointment(request):
+	error = ""
+	if not request.user.is_authenticated:
+		return redirect('login')
+	doc = Doctor.objects.all()
+	patients = Patient.objects.all()
 	if request.method == "POST":
-		name = request.POST.get('name')
-		password = encrypt_pwd(request.POST.get('password'))
-		email = request.POST.get('email')
-		isHealthWorker = request.POST.get('healthWorker')
-		if isHealthWorker == 'H':
-			isHealthWorker = 1
-		else:
-			isHealthWorker = 0
-		isResearcher = request.POST.get('researcher')
-		if isResearcher == 'R':
-			isResearcher = 1
-		else:
-			isResearcher = 0
+		doctorId = request.POST.get('doctor')
+		patientId = request.POST.get('patient')
+		date = request.POST.get('date')
+		time = request.POST.get('time')
+		doctor01 = Doctor.objects.filter(id=doctorId).first()
+		patient01 = Patient.objects.filter(id=patientId).first()
+		# encrypt appointment
+		key_value = Fernet.generate_key()
+		date = wordEnc(date, key_value).decode()
+		time = wordEnc(time, key_value).decode()
+		try:
+			Appointment.objects.create(doctor = doctor01, patient = patient01, date = date, time = time, key_value=key_value.decode())
+			error = "no"
+		except:
+			error = "yes"
+	# encrypt doc
+	for do in doc:
+		do = decryptDoctor(do)
+	# encrypt patient
+	# encrypt appoinntment
+	d = {'error':error, 'doc':doc, 'patients':patients}
+	return render(request, 'addAppointment.html', d)
 
-		newUser = User(name = name, password = password, email = email, isHealthWorker = isHealthWorker, isResearcher = isResearcher)
-		newUser.save()
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def viewAppointment(request):
+	if not request.user.is_authenticated:
+		return redirect('login')
+	appoint = Appointment.objects.all()
+	# decrypt appointment data here
+	for app in appoint:
+		app = decryptAppointment(app)
+	d = {'appoint': appoint}
+	return render(request, 'viewAppointment.html', d)
 
-		return redirect('home')
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def deleteAppointment(request, pk):
+	if not request.user.is_authenticated:
+		return redirect('login')
+	doc = Appointment.objects.get(id=pk)
+	doc.delete()
+	return redirect('viewAppointment')
 
-	return render(request, 'addUser.html', {'isHealthWorker': isH, 'isResearcher': isR})
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def	appointment(request):
+	return render(request, 'appointment.html', {})
 
+# Views for doctor
+
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def doctorHome(request):
+	doctor = Doctor.objects.get(user_id = request.user.id)
+	docId = doctor.id
+	patientcount = Appointment.objects.all().filter(doctor_id = docId).distinct().count()
+	appointmentcount = Appointment.objects.all().filter(doctor_id=docId).distinct().count()
+	appointments = Appointment.objects.all().filter(doctor_id=docId)
+	patientid=[]
+	for a in appointments:
+		patientid.append(a.patient_id)
+	patients = Patient.objects.all().filter(id__in=patientid)
+	# decrypt doctor
+	doctor = decryptDoctor(doctor)
+	# decrypt patient
+	for pa in patients:
+		pa = decryptPatient(pa)
+	# decrypt appointment
+	for ap in appointments:
+		ap = decryptAppointment(ap)
+	d = {
+    'patientcount':patientcount,
+    'appointmentcount':appointmentcount,
+    'appointments':appointments,
+	'patients': patients,
+    'doctor': doctor
+    }
+	return render(request, 'doctorHome.html', d)
+
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def doctor_view_patient(request, pk):
+	if not request.user.is_authenticated:
+		messages.success(request, ('You need to login first!'))
+		return redirect('login')
+	patient = Patient.objects.get(id = pk)
+	docId = Doctor.objects.get(user_id = request.user.id).id
+	appt = Appointment.objects.all().filter(patient_id=pk, doctor_id = docId)
+	docId=[]
+	for a in appt:
+		docId.append(a.doctor_id)
+	doc = Doctor.objects.all().filter(id__in = docId)
+	# decrypt patient
+	patient = decryptPatient(patient)
+	# decrypt doctor
+	for do in doc:
+		do = decryptDoctor(do)
+	# encrypt appointment
+	for ap in appt:
+		ap = decryptAppointment(ap)
+	d = {'doc': doc, 'appot': appt, 'patient': patient}
+	return render(request, 'doctor_view_patient.html', d)
+
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def doctor_editAppointment(request, pk):
+	
+	return render(request, 'doctor_editAppointment.html', {})
+
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def doctor_add_appointment(request):
+	error = ""
+	if not request.user.is_authenticated:
+		return redirect('login')
+	doc = Doctor.objects.get(user_id = request.user.id).id
+	patients = Patient.objects.all()
+	if request.method == "POST":
+		patientId = request.POST.get('patient')
+		date = request.POST.get('date')
+		time = request.POST.get('time')
+		doctor01 = Doctor.objects.filter(id=doc).first()
+		patient01 = Patient.objects.filter(id=patientId).first()
+		try:
+			Appointment.objects.create(doctor = doctor01, patient = patient01, date = date, time = time)
+			error = "no"
+		except:
+			error = "yes"
+	# decrypt doctor
+	doc = decryptDoctor(doc)
+	# decrypt patient
+	for pa in patients:
+		pa = decryptPatient(pa)
+	d = {'error':error, 'patients':patients}
+	return render(request, 'doctor_add_appointment.html', d)
+
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def doctor_deleteAppointment(request, pk):
+	if not request.user.is_authenticated:
+		return redirect('login')
+	doc = Appointment.objects.get(id=pk)
+	doc.delete()
+	return redirect('doctorHome')
+
+# Views for Patients
+
+@login_required(login_url='login')
+@user_passes_test(is_patient)
+def patientHome(request):
+	patient = Patient.objects.get(user_id = request.user.id)
+	patId = patient.id
+	doctorcount = Appointment.objects.all().filter(patient_id = patId).distinct().count()
+	appointmentcount = Appointment.objects.all().filter(patient_id=patId).distinct().count()
+	appointments = Appointment.objects.all().filter(patient_id=patId)
+	docId=[]
+	for a in appointments:
+		docId.append(a.doctor_id)
+	doctors =  Doctor.objects.all().filter(id__in = docId)
+	# decrypt doc
+	for doc in doctors:
+		doc = decryptDoctor(doc)
+	# decrypt patient
+	patient = decryptPatient(patient)
+	# decrypt appointment
+	for app in appointments:
+		app = decryptAppointment(app)
+	d = {
+    'doctorCount':doctorcount,
+    'appointmentcount':appointmentcount,
+    'appointments':appointments,
+	'patient': patient,
+    'doctor': doctors
+    }
+	return render(request, 'patientHome.html', d)
+
+@login_required(login_url='login')
+@user_passes_test(is_patient)
+def patient_view_doctor(request, pk):
+	if not request.user.is_authenticated:
+		messages.success(request, ('You need to login first!'))
+		return redirect('login')
+	doctor = Doctor.objects.get(id = pk)
+	patId = Patient.objects.get(user_id = request.user.id).id
+	appt = Appointment.objects.all().filter(doctor_id=pk, patient_id = patId)
+	patientId=[]
+	for a in appt:
+		patientId.append(a.patient_id)
+	patients = Patient.objects.all().filter(id__in = patientId)
+	# encrypt doc
+	doctor = decryptDoctor(doctor)
+	# encrypt patient
+	for pa in patients:
+		pa = decryptPatient(pa)
+	# encrypt appoinntment
+	for ap in appt:
+		ap = decryptAppointment(ap)
+	d = {'doc': doctor, 'appot': appt, 'patient': patients}
+	return render(request, 'patient_view_doctor.html', d)
+
+@login_required(login_url='login')
+@user_passes_test(is_patient)
+def patientViewAllDoctors(request):
+	if not request.user.is_authenticated:
+		return redirect('login')
+	doc = Doctor.objects.all()
+	# decrypt doc data here
+	for do in doc:
+		do = decryptDoctor(do)
+	d = {'doc': doc}
+	return render(request, 'patientViewAllDoctors.html', d)
+
+@login_required(login_url='login')
+@user_passes_test(is_patient)
+def patientAddAppointments(request):
+	error = ""
+	if not request.user.is_authenticated:
+		return redirect('login')
+	pat = Patient.objects.get(user_id = request.user.id).id
+	doctors = Doctor.objects.all()
+	print(doctors)
+	if request.method == "POST":
+		doctorId = request.POST.get('doctor')
+		date = request.POST.get('date')
+		time = request.POST.get('time')
+		patient01 = Patient.objects.filter(id=pat).first()
+		doctor01 = Doctor.objects.filter(id = doctorId).first()
+		key_value = Fernet.generate_key()
+		date = wordEnc(date, key_value).decode()
+		time = wordEnc(time, key_value).decode()
+		try:
+			Appointment.objects.create(doctor=doctor01, patient=patient01, date=date, time=time, key_value=key_value.decode())
+			error = "no"
+		except:
+			error = "yes"
+	# encrypt doc
+	for doc in doctors:
+		doc = decryptDoctor(doc)
+	d = {'error': error, 'doc':doctors}
+	return render(request, 'patientAddAppointments.html', d)
+
+@login_required(login_url='login')
+@user_passes_test(is_patient)
+def guestAddPatient(request, pk):
+	error = ""
+	if not request.user.is_authenticated:
+		return redirect('login')
+	if request.method == "POST":
+		fName = request.POST.get('fName')
+		lName = request.POST.get('lName')
+		address = request.POST.get('address')
+		contact = request.POST.get('contact')
+		dob = request.POST.get('dob')
+		gender = request.POST.get('gender')
+		weight = request.POST.get('weight')
+		height = request.POST.get('height')
+		healthHistory = request.POST.get('helhis')
+		medication = request.POST.get('medication')
+		patient01 = User.objects.get(id=pk)
+		# encrypt pat data here 
+		key_value = Fernet.generate()
+		fName = wordEnc(fName, key_value).decode()
+		lName = wordEnc(lName, key_value).decode()
+		address = wordEnc(address, key_value).decode()
+		contact = wordEnc(contact, key_value).decode()
+		dob = wordEnc(dob, key_value).decode()
+		healthHistory = wordEnc(healthHistory, key_value).decode()
+		medication = wordEnc(medication, key_value).decode()
+		weight = orderedNumber(weight)
+		height = orderedNumber(height)
+		gender = getGenderBin(gender)
+		try:
+			Patient.objects.create(user = patient01, firstName = fName, lastName = lName, address = address, contact = contact, dob = dob, gender = gender, weight = weight, height = height, healthHistory = healthHistory, medication = medication, key_value = key_value.decode())
+			error = "no"
+		except:
+			error = "yes"
+	d = {'error':error, 'id': pk}
+	return render(request, 'guestAddPatient.html', d)
 

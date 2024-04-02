@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div><br>
+        <h2>View Appointment</h2>
+        <div class="card-body">
+            <table id="datatablesSimple" class="table table-stripe">
+                <thead>
+                    <tr>
+                        <th>Appointment Id.</th>
+                        <th>Doctor Name</th>
+                        <th>Patient Name</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in appoint %}
+                    <tr>
+                        <td>{{ i.id }}</td>
+                        <td><a href="{% url 'doctor' i.doctor_id %}">Dr. {{ i.doctor.firstName }} {{ i.doctor.lastName }}</a></td>
+                        <td><a href="{% url 'patient' i.patient_id %}">{{ i.patient.firstName }} {{ i.patient.lastName }}</a></td>
+                        <td>{{ i.date }}</td>
+                        <td>{{ i.time }}</td>
+                        <td>
+                            <a href="{% url 'deleteAppointment' i.id %}" onclick="return confirm('Are you sure you want to delete {{ i.date }} {{ i.time }} appointment?')" class="btn btn-danger">
+                                Delete
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

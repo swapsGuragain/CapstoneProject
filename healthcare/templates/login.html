@@ -1,8 +1,29 @@
 {% extends 'base.html' %}
+
 {% block content %}
-
-
-
+{% if error == "no" %}
+    {% if user.is_staff %}
+        <script>
+            alert("Logged in successfully!")
+            window.location = "{% url 'index' %}"
+        </script>
+    {% elif user.groups.all.0.name == "doctor" %}
+        <script>
+        alert("Logged in successfully!!")
+        window.location = "{% url 'doctorHome' %}"
+        </script>
+    {% else %}
+    <script>
+        alert("Logged in successfully!!")
+        window.location = "{% url 'patientHome' %}"
+        </script>
+    {% endif %}
+{% endif %}
+{% if error == "yes" %}
+<script>
+    alert("Invalid. Try again!")
+</script>
+{% endif %}
     <body class="bg-secondary">
         <div id="layoutAuthentication">
             <div id="layoutAuthentication_content">

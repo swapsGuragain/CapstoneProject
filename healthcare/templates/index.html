@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Admin Dashboard</h1>
+
+<div class="container">
+    <div class="row" style="margin-top: 50px;">
+        <div class="col-sm-4 myHoverStyle">
+            <h2 style="color:rgb(10, 54, 54);">{{ d }}</h2>
+            <a href="{% url 'viewDoctor' %}"><h4 style="color:rgb(57, 98, 138);">Doctors</h4></a>
+        </div>
+        <div class="col-sm-4 myHoverStyle">
+            <h2 style="color:rgb(10, 54, 54);">{{ p }}</h2>
+            <a href="{% url 'patientsList' %}"><h4 style="color:rgb(57, 98, 138);">Patients</h4></a>
+        </div>
+        <div class="col-sm-4 myHoverStyle">
+            <h2 style="color:rgb(10, 54, 54);">{{ a }}</h2>
+            <a href="{% url 'viewAppointment' %}"><h4 style="color:rgb(57, 98, 138);">Appointments</h4></a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .myHoverStyle:hover {
+        box-shadow: 0 0 20px 0 rgba(42, 42, 42, 0.5);
+        transform: translateY(-20px);
+    }
+</style>
+
+{% endblock %}

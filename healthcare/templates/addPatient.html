@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% if error == "no" %}
+  {% if user.is_staff %}
+      <script>
+          alert("Record saved successfully!")
+          window.location = "{% url 'patientsList' %}"
+      </script>
+    {% else %}
+    <script>
+      alert("Record saved successfully!")
+      window.location = "{% url 'home' %}"
+    </script>
+  {% endif %}
+{% endif %}
+{% if error == "yes" %}
+<script>
+    alert("Invalid. Try again!")
+</script>
+{% endif %}
+
+<body class="bg-secondary">
+        <div id="layoutAuthentication">
+            <div id="layoutAuthentication_content">
+                <main>
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8">
+                                <div class="card shadow-lg border-0 rounded-lg mt-5">
+                                    <div class="card-header"><h3 class="text-center font-weight-light my-4">Add New Patient</h3></div>
+                                    <div class="card-body">
+                                        <form method="POST" action="{% url 'addPatient' %}">
+                                            {% csrf_token %} 
+                                              <div class="form-floating mb-3">
+                                                  <div class="row">
+                                                    <div class="col-3">
+                                                      <label for="fname">First Name</label>
+                                                    </div>
+                                                    <div class="col-9">
+                                                      <input class="form-control" style="width: 100%;" id="firstname" type="text" name="fName" placeholder="Your first name.."/>
+                                                    </div>
+                                                  </div>
+                                              </div>
+                                              <div class="form-floating mb-3">
+                                                <div class="row">
+                                                    <div class="col-3">
+                                                      <label for="lname">Last Name</label>
+                                                    </div>
+                                                    <div class="col-9">
+                                                      <input class="form-control" style="width: 100%;" id="lastname" type="text" name="lName" placeholder="Your last name.."/>
+                                                    </div>
+                                                </div>
+                                              </div>
+                                              <div class="form-floating mb-3">
+                                                <div class="row">
+                                                  <div class="col-3">
+                                                    <label for="dob">Date Of Birth</label>
+                                                  </div>
+                                                  <div class="col-9">
+                                                   <input class="form-control" style="width: 50%;" id="dob" type="date" name="dob"/>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                              <div class="form-floating mb-3">
+                                                <div class="row">
+                                                  <div class="col-3">
+                                                    <label for="gender">Gender</label>
+                                                  </div>
+                                                  <div class="col-9">
+                                                    <input class="form-control" style="width: 100%;" id="gender" type="text" name = "gender" placeholder="Male/Female.." />
+                                                  </div>
+                                                </div>
+                                              </div>
+                                              <div class="form-floating mb-3">
+                                                <div class="row">
+                                                  <div class="col-3">
+                                                    <label for="weight">Weight</label>
+                                                  </div>
+                                                  <div class="col-9">
+                                                    <input class="form-control" style="width: 100%;" id="weight" type="number" name="weight" placeholder="Your weight.." />
+                                                  </div> 
+                                                </div>
+                                              </div>
+                                              <div class="form-floating mb-3">
+                                                <div class="row">
+                                                  <div class="col-3">
+                                                    <label for="height">Height</label>
+                                                  </div>
+                                                  <div class="col-9">
+                                                    <input class="form-control" style="width: 100%;" id="height" type="text" name="height" placeholder="Your height..">
+                                                  </div>
+                                                </div> 
+                                              </div>
+                                              <div class="form-floating mb-3">
+                                                <div class="row">
+                                                  <div class="col-3">
+                                                    <label  for="Health Histroy">Health Histroy</label>
+                                                  </div>
+                                                  <div class="col-9">
+                                                    <input class="form-control" style="width: 100%;" id="helhis" type="text" name="helhis" placeholder="Health Histroy..">
+                                                  </div>
+                                                </div>  
+                                              </div>
+                                              <div class="form-floating mb-3">
+                                                <div class="row">
+                                                  <div class="col-3">
+                                                    <label  for="Address">Address</label>
+                                                  </div>
+                                                  <div class="col-9">
+                                                    <input class="form-control" style="width: 100%;" id="helhis" type="text" name="address" placeholder="Address..">
+                                                  </div>
+                                                </div>  
+                                              </div>
+                                              <div class="form-floating mb-3">
+                                                <div class="row">
+                                                  <div class="col-3">
+                                                    <label  for="Contact">Contact no.</label>
+                                                  </div>
+                                                  <div class="col-9">
+                                                    <input class="form-control" style="width: 100%;" id="helhis" type="text" name="contact" placeholder="Phone no..">
+                                                  </div>
+                                                </div>  
+                                              </div>
+                                              <div class="form-floating mb-3">
+                                                <div class="row">
+                                                  <div class="col-3">
+                                                    <label  for="Medication">Medications</label>
+                                                  </div>
+                                                  <div class="col-9">
+                                                    <input class="form-control" style="width: 100%;" id="helhis" type="text" name="medication" placeholder="Medications..">
+                                                  </div>
+                                                </div>  
+                                              <!-- </div>
+                                              <div class="form-floating mb-3">
+                                                <div class="row">
+                                                  <div class="col-3">
+                                                    <label  for="Appointment">Appointments</label>
+                                                  </div>
+                                                  <div class="col-9">
+                                                    <input class="form-control" style="width: 100%;" id="helhis" type="text" name="appointment" placeholder="Appointments..">
+                                                  </div>
+                                                </div>  
+                                              </div> -->
+                                              {% if id %}
+                                                  <div class="form-floating mb-3">
+                                                    <div class="row">
+                                                      <div class="col-3">
+                                                        <label  for="patient">Your patient id</label>
+                                                      </div>
+                                                      <div class="col-9">
+                                                        <p><b>
+                                                            <p>{{ id }}</p>
+                                                            <input type="hidden" value="{{ id }}" name="patient">
+                                                        </b></p>
+                                                      </div>
+                                                    </div>  
+                                                  </div>
+                                              {% else %}  
+                                              <div class="form-floating mb-3">
+                                                <div class="row">
+                                                  <div class="col-3">
+                                                    <label  for="patient">Your patient id</label>
+                                                  </div>
+                                                  <div class="col-9">
+                                                    <input class="form-control" style="width: 100%;" id="helhis" type="text" name="patient" placeholder="Provide id if you have them...">
+                                                  </div>
+                                                </div>  
+                                              </div>
+                                              {% endif %}
+                                            <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
+                                                <button class="btn btn-secondary" type="submit" >Add</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+</div> 
+
+{% endblock %}
+
+

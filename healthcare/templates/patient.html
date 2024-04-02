@@ -3,7 +3,6 @@
 
 
 <body class="bg-secondary">
-  <br/>
   <div id="layoutAuthentication">
      <div id="layoutAuthentication_content">
         <main>
@@ -19,7 +18,6 @@
                           <h6>First Name: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ patient.firstName }}</h6>
                           <h6>Last Name: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ patient.lastName }}</h6>
                           <h6>Date of birth: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ patient.dob }}</h6>
-                          <h6>Age: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ patient.age }}</h6>
                           <h6>Gender: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ patient.gender }}</h6>
                         <br><br>
                           <h5>
@@ -29,7 +27,60 @@
                         <br><br>
                         <h6>Weight: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ patient.weight }} lb</h6>
                         <h6>Height: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ patient.height }} cm</h6>
+                        <br><br>
+                        <h6>Medication: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ patient.medication }} </h6>
                     </div>
+                    <br><br>
+                            <h5>Appointments:</h5>
+                            <table class="table table-stripe">
+                                <thead>
+                                    <tr>
+                                        <th>Doctor's Name</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                  {% if appot %}
+                                    {% for a in appot %}
+                                    <tr>
+                                        <td><h6>Dr. {{ a.doctor.firstName }} {{ a.doctor.lastName }}</h6></td>
+                                        <td><h6>{{ a.date }}</h6></td>
+                                        <td><h6>{{ a.time }}</h6></td>
+                                    </tr>
+                                    {% endfor %}
+                                  {% else %}
+                                    <tr>
+                                      <td>No value found</td>
+                                      <td></td>
+                                      <td></td>
+                                    </tr>
+                                  {% endif %}
+                                </tbody>
+                            </table>
+                            <br><br>
+                            <h5>Doctors: </h5>
+                            <table class="table table-stripe">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Speciality</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                  {% if doc %}
+                                    {% for d in doc %}
+                                    <tr>
+                                        <td><h6> Dr. {{ d.firstName }} {{ d.lastName }}</h6></td>
+                                        <td><h6>{{ d.speciality }}</h6></td>
+                                    </tr>
+                                    {% endfor %}
+                                  {% else %}
+                                    <tr><td>No value found</td><td></td></tr>
+                                  {% endif %}
+                                </tbody>
+                                
+                            </table>
                 </div>
               </div>
           </div>

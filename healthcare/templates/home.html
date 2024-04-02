@@ -1,78 +1,40 @@
 {% extends 'base.html' %}
 
 {% block content %}
-            <div id="layoutSidenav_content">
-                <main>
-                    <div class="container-fluid px-4">
-                        <h1 class="mt-4">Dashboard</h1>
-                        
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <i class="fas fa-table me-1"></i>
-                                DataTable Example
-                            </div>
-                            <form method='POST' action="{% url 'home' %}" class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">
-                                {% csrf_token %}
-                                <div class="input-group">
-                                    <input class="form-control" type="text" name="startWeight" placeholder="Starting weight " aria-label="Search for..." aria-describedby="btnNavbarSearch" />
-                                    <input class="form-control" type="text" name="endWeight" placeholder="Maximun weight range search" aria-label="Search for..." aria-describedby="btnNavbarSearch" />
-                                    <button class="btn btn-primary" id="btnNavbarSearch" type="submit"><i class="fas fa-search"></i></button>
-                                </div>
-                            </form>
-                            <div class="card-body">
-                                <table id="datatablesSimple">
-                                    <thead>
-                                        <tr>
-                                            {% if isH %}
-                                            <th>First Name</th>
-                                            <th>Last Name</th>
-                                            {% endif %}
-                                            <th>Date of Birth</th>
-                                            <th>Age</th>
-                                            <th>Gender</th>
-                                            <th>Weight (lb)</th>
-                                            <th>Height (cm)</th>
-                                            <th>Health History</th>
-                                        </tr>
-                                    </thead>
-                                    <tfoot>
-                                        <tr>
-                                            {% if isH %}
-                                            <th>First Name</th>
-                                            <th>Last Name</th>
-                                            {% endif %}
-                                            <th>First Name</th>
-                                            <th>Last Name</th>
-                                            <th>Date of Birth</th>
-                                            <th>Age</th>
-                                            <th>Gender</th>
-                                            <th>Weight (lb)</th>
-                                            <th>Height (cm)</th>
-                                            <th>Health History</th>
-                                        </tr>
-                                    </tfoot>
-                                    <tbody>
-                                        {% for patient in patients %}
-                                        <tr>
-                                            {% if isH %}
-                                            <td>{{ patient.firstName }}</td>
-                                            <td>{{ patient.lastName }}</td>
-                                            {% endif %}
-                                            <td>{{ patient.dob }}</td>
-                                            <td>{{ patient.age }}</td>
-                                            <td>{{ patient.gender }}</td>
-                                            <td>{{ patient.weight }}</td>
-                                            <td>{{ patient.height }}</td>
-                                            <td>{{ patient.healthHistory }}</td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                                <form method="FETCH" action="{% url 'home' %}">
-                                    <button>Download</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </main>
-{% endblock %}               
+
+<style>
+    .container {
+        position: absolute;
+        width: 100%;
+        max-width: 400px; /* Adjust as needed */
+    }
+
+    .image {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+    }
+
+    .text {
+        position: absolute;
+        top: 40%;
+        left: 100%;
+        right: 100%;
+        transform: translate(-50%, -50%);
+        color: Black;
+        font-size: 50px;
+		text-align: center;
+        white-space: nowrap;
+        font-family: "Roboto";
+        font-style: italic;
+        
+    }
+</style>
+
+	<div class="container">
+		<img src="static/assets/img/medicine-blue-background-flat-lay.jpg" alt="Your Image" class="image">
+		<div class="text">Securing Today Building Tomorrow</div>
+	</div>
+
+
+{% endblock %}       

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% if error == "no" %}
+<script>
+    alert("Record saved successfully!")
+    window.location = "{% url 'doctorHome' %}"
+</script>
+{% endif %}
+{% if error == "yes" %}
+<script>
+    alert("Invalid. Try again!")
+</script>
+{% endif %}
+
+<body class="bg-secondary">
+        <div id="layoutAuthentication">
+            <div id="layoutAuthentication_content">
+                <main>
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8">
+                                <div class="card shadow-lg border-0 rounded-lg mt-5">
+                                    <div class="card-header"><h3 class="text-center font-weight-light my-4">Add Appointment</h3></div>
+                                    <div class="card-body">
+                                        <form method="POST" action="{% url 'doctor_add_appointment' %}">
+                                            {% csrf_token %} 
+                                              <div class="form-floating mb-3">
+                                                <div class="row">
+                                                    <div class="col-3">
+                                                      <label for="lname">Patient Name</label>
+                                                    </div>
+                                                    <div class="col-9">
+                                                        <select name="patient" class="control">
+                                                            <option value="">--Please choose patient--</option>
+                                                            {% for i in patients %}
+                                                            <option value="{{ i.id }}">{{ i.firstName }} {{ i.lastName }}</option>
+                                                            {% endfor %}
+                                                        </select>                                                    
+                                                    </div>
+                                                </div>
+                                              </div>
+                                              <div class="form-floating mb-3">
+                                                <div class="row">
+                                                  <div class="col-3">
+                                                    <label for="dob">Date</label>
+                                                  </div>
+                                                  <div class="col-9">
+                                                   <input class="form-control" style="width: 50%;" id="dob" type="date" name="date"/>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                              <div class="form-floating mb-3">
+                                                <div class="row">
+                                                  <div class="col-3">
+                                                    <label for="gender">Time</label>
+                                                  </div>
+                                                  <div class="col-9">
+                                                    <input class="form-control" style="width: 50%;" id="gender" type="time" name = "time"/>
+                                                  </div>
+                                                </div>
+                                              </div>
+
+                                            <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
+                                                <button class="btn btn-secondary" type="submit" >Add</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+</div> 
+
+{% endblock %}
+
+

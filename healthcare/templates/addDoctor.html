@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% if error == "no" %}
+  {% if user.is_staff %}
+    <script>
+        alert("Record saved successfully!")
+        window.location = "{% url 'viewDoctor' %}"
+    </script>
+  {% else %}
+    <script>
+      alert("Record saved successfully!")
+      window.location = "{% url 'home' %}"
+    </script>
+  {% endif %}
+{% endif %}
+{% if error == "yes" %}
+<script>
+    alert("Invalid. Try again!")
+</script>
+{% endif %}
+
+<body class="bg-secondary">
+        <div id="layoutAuthentication">
+            <div id="layoutAuthentication_content">
+                <main>
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8">
+                                <div class="card shadow-lg border-0 rounded-lg mt-5">
+                                    <div class="card-header"><h3 class="text-center font-weight-light my-4">Add New Healthcare Professional</h3></div>
+                                    <div class="card-body">
+                                        <form method="POST" action="{% url 'addDoctor' %}">
+                                            {% csrf_token %} 
+                                              <div class="form-floating mb-3">
+                                                  <div class="row">
+                                                    <div class="col-3">
+                                                      <label for="fname">First name</label>
+                                                    </div>
+                                                    <div class="col-9">
+                                                      <input class="form-control" style="width: 100%;" id="name" type="text" name="fName" placeholder="first name"/>
+                                                    </div>
+                                                  </div>
+                                              </div>
+                                              <div class="form-floating mb-3">
+                                                <div class="row">
+                                                  <div class="col-3">
+                                                    <label for="lname">Last name</label>
+                                                  </div>
+                                                  <div class="col-9">
+                                                    <input class="form-control" style="width: 100%;" id="name" type="text" name="lName" placeholder="last name"/>
+                                                  </div>
+                                                </div>
+                                            </div>
+                                              <div class="form-floating mb-3">
+                                                <div class="row">
+                                                  <div class="col-3">
+                                                    <label for="spec">Speciality</label>
+                                                  </div>
+                                                  <div class="col-9">
+                                                    <input class="form-control" style="width: 100%;" id="name" type="text" name = "spec" placeholder="Speciality" />
+                                                  </div>
+                                                </div>
+                                              </div>
+                                              <div class="form-floating mb-3">
+                                                <div class="row">
+                                                  <div class="col-3">
+                                                    <label for="phone">Phone number</label>
+                                                  </div>
+                                                  <div class="col-9">
+                                                    <input class="form-control" style="width: 100%;" id="weight" type="text" name="phone" placeholder="Phone no." />
+                                                  </div> 
+                                                </div>
+                                              </div>
+                                              {% if messages %}
+                                                  <div class="form-floating mb-3">
+                                                    <div class="row">
+                                                      <div class="col-3">
+                                                        <label  for="patient">Your patient id</label>
+                                                      </div>
+                                                      <div class="col-9">
+                                                        <p><b>
+                                                          {% for message in messages %}
+                                                            {% if forloop.last %}
+                                                            <p>{{ message }}</p>
+                                                            <input type="hidden" value="{{ message }}" name="patient">
+                                                            {% endif %}
+                                                          {% endfor %}
+                                                        </b></p>
+                                                      </div>
+                                                    </div>  
+                                                  </div>
+                                              {% else %}  
+                                              <div class="form-floating mb-3">
+                                                <div class="row">
+                                                  <div class="col-3">
+                                                    <label for="fname">Your registered id</label>
+                                                  </div>
+                                                  <div class="col-9">
+                                                    <input class="form-control" style="width: 100%;" id="doctor" type="text" name="doctor" placeholder="Provide id if you have them..."/>
+                                                  </div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
+                                                <button class="btn btn-secondary" type="submit" >Add</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+</div> 
+
+{% endblock %}
+
+

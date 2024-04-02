@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div><br>
+        <h2>View Doctor</h2>
+        <div class="card-body">
+            <table id="datatablesSimple" class="table table-stripe">
+                <thead>
+                    <tr>
+                        <th>Doctor Id.</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Speciality</th>
+                        <th>Contact</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in doc %}
+                    <tr>
+                        <td>{{ i.id }}</td>
+                        <td><a href="{% url 'doctor' i.id %}">{{ i.firstName }}</a></td>
+                        <td><a href="{% url 'doctor' i.id %}">{{ i.lastName }}</a></td>
+                        <td>{{ i.speciality }}</td>
+                        <td>{{ i.phone }}</td>
+                        <td>
+                            <a href="{% url 'deleteDoctor' i.id %}" onclick="return confirm('Are you sure you want to delete Dr. {{ i.firstName }} {{ i.lastName }}?')" class="btn btn-danger">
+                                Delete
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

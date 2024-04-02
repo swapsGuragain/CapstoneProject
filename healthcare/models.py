@@ -1,51 +1,50 @@
 from django.db import models
+from django.conf import settings
+
 import datetime
-
-
-# Patients
-# class PatientList(models.Model):
-# 	firstName = models.CharField(max_length = 50)
-# 	lastName = models.CharField(max_length = 50)
-# 	age =
-# 	gender = models.CharField(max_length = 50)
-# 	weight = models.DecimalField(decimal_places = 2, max_digits = 5)
-# 	height = models.DecimalField(decimal_places = 2, max_digits = 5)
-# 	healthHistory = models.CharField(max_length = 500, default = '', blank = True, null = True)
-
-
-# 	def __str__(self):
-# 		return f'{self.firstName} {self.lastName} {self.age} {self.gender} {self.weight} {self.height} {self.healthHistory}'
 
 
 # One patient from Patients
 class Patient(models.Model):
-	firstName = models.CharField(max_length = 500)
-	lastName = models.CharField(max_length = 500)
-	dob = models.CharField(max_length = 500, default="2023-01-01")
-	gender = models.CharField(max_length = 10) 
+	user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete = models.CASCADE, default = "", null = True)
+	firstName = models.CharField(max_length = 50000)
+	lastName = models.CharField(max_length = 50000)
+	address = models.CharField(max_length = 50000, null = True)
+	contact = models.CharField(max_length = 50000, null = True)
+	dob = models.CharField(max_length = 50000, default="2023-01-01")
+	gender = models.CharField(max_length = 20) 
 	weight = models.DecimalField(decimal_places = 2, max_digits = 50)
 	height = models.DecimalField(decimal_places = 2, max_digits = 50)
-	healthHistory = models.CharField(max_length = 1000, default = '', blank = True, null = True)
+	healthHistory = models.CharField(max_length = 100000, default = '', blank = True, null = True)
+	medication = models.CharField(max_length = 100000, default = '', blank = True, null = True)
+	appointment = models.CharField(max_length = 100000, default = '', blank = True, null = True)
+	key_value = models.CharField(max_length = 50000, default='', null = True)
 
 	def __str__(self):
+		return f"{self.firstName},{self.lastName},{self.dob},{self.gender},{self.weight},{self.height},{self.contact},{self.address},{self.medication},{self.appointment},{self.healthHistory}"
 
-		return f"{self.firstName},{self.lastName},{self.dob},{self.gender},{self.weight},{self.height},{self.healthHistory}"
+# Doctor from doctor's list
+class Doctor(models.Model):
+	user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete = models.CASCADE, default = "", null = True)
+	firstName = models.CharField(max_length = 500)
+	lastName = models.CharField(max_length = 500)
+	speciality = models.CharField(max_length = 500)
+	phone = models.CharField(max_length = 500)
+	key_value = models.CharField(max_length = 500, default='', null = True)
 
+	def __str__(self):
+		return f"{self.firstName}, {self.lastName},{self.speciality},{self.phone}"
 
-
-
-class User(models.Model):
-
-	name = models.CharField(max_length = 50)
-	password = models.CharField(max_length = 10000)
-	email = models.EmailField(max_length=100)
-	isAuthenticated = models.BooleanField(default = False)
-	isHealthWorker = models.BooleanField(default = False)
-	isResearcher = models.BooleanField(default = False)
+class Appointment(models.Model):
+	doctor = models.ForeignKey('Doctor', on_delete = models.CASCADE, related_name = 'leadsstatus')
+	patient = models.ForeignKey('Patient', on_delete = models.CASCADE, related_name = 'leadsstatus')
+	date = models.CharField(max_length = 500)
+	time = models.CharField(max_length = 500)
+	key_value = models.CharField(max_length = 500, default='', null = True)
 
 
 	def __str__(self):
-		return self.name
+		return f"{self.doctor}, {self.patient},{self.date},{self.time}"
 
 		
 

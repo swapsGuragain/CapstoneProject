@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Welcome, {{ patient.firstName}} {{ patient.lastName }}</h1>
+
+<div class="container">
+  <div class="market-updates">
+    <div class="row" style="margin-top: 50px;">
+      <div class="col-sm-1"></div>
+      <div class="col-sm-4 myHoverStyle">
+          <h2 style="color:rgb(10, 54, 54);">{{ appointmentcount }}</h2>
+          <h4 style="color:rgb(57, 98, 138);">Appointments</h4></a>
+      </div>
+      <div class="col-sm-2"></div>
+      <div class="col-sm-4 myHoverStyle">
+          <h2 style="color:rgb(10, 54, 54);">{{ doctorCount }}</h2>
+          <h4 style="color:rgb(57, 98, 138);">Doctors For you</h4>
+      </div>
+      <div class="col-sm-1"></div>
+  </div>
+  <br><br>
+    <div class="row">
+      <div class="panel panel-primary" style="margin-left:2%;">
+        <div class="panel-heading" style="text-align:center;">
+          <h3 class="panel-title">Recent Appointments For You</h3>
+        </div>
+        <table class="table table-hover table-striped" id="datatablesSimple">
+          <thead class="thead-dark">
+            <tr>
+              <th>Doctor's Name</th>
+              <th>Speciality</th>
+              <th>Date</th>
+              <th>Time</th>
+              <!-- <th>Edit</th> -->
+            </tr>
+          </thead>
+          {% for i in appointments %}
+          <tr>
+            <td><a href="{% url 'patient_view_doctor' i.doctor_id %}">Dr. {{ i.doctor.firstName }} {{ i.doctor.lastName }}</a></td>
+            <td>{{ i.doctor.speciality }}</td>
+            <td>{{ i.date }}</td>
+            <td>{{ i.time }}</td>
+            <!-- <td>
+              <a href="{% url 'doctor_editAppointment' i.id %}" onclick="return confirm('Are you sure you want to edit {{ i.date }} {{ i.time }} appointment?')" class="btn btn-warning">
+                  Edit
+              </a>
+          </td> -->
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

@@ -1,3 +1,11 @@
-# dsp_project/settings.py
+*~
 
-# migrations
+*#
+
+Cap_project/settings.py
+
+migrations
+manage.py
+
+healthcare/migrations
+

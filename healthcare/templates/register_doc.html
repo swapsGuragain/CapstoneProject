@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if form.error %}
+    <script>
+        alert("There was an error in the register form. Try agai! ")
+    </script>
+
+{% endif %}
+
+        <div id="layoutAuthentication">
+            <div id="layoutAuthentication_content">
+                <main>
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-7">
+                                <div class="card shadow-lg border-0 rounded-lg mt-5">
+                                    <div class="card-header"><h3 class="text-center font-weight-light my-4">Register a Doctor</h3></div>
+                                    <div class="card-body">
+                                        <form action="{% url 'register_doc' %}" method="POST">
+                                            {% csrf_token %}
+                                            {{ form.as_p }}
+                                            <br><br><br>
+                                            <input type="submit" value="Submit" class="btn btn-secondary">
+                                        </form>
+                                    </div>
+                                    <div class="card-footer text-center py-3">
+                                        <div class="small"><a href="{% url 'login' %}">Have an account? Go to login</a></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                </div>
+                </div>
+                
+                {% endblock %}
