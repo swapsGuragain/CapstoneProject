@@ -1,14 +1,8 @@
 import random
 from datetime import date
 
-import numpy as np
-
-import hashlib
 from cryptography.fernet import Fernet
 import base64
-
-from django.db import connections
-import mysql.connector
 
 def decryptAppointment(appointment):
 	appointment.doctor = decryptDoctor(appointment.doctor)
@@ -84,19 +78,6 @@ def wordEnc(pwd, key):
 	encodedPwd = cipher_suite.encrypt(pwd)
 	return encodedPwd
 
-def wordDec1(pwd, key):
-	key = key.encode("utf-8")
-	key = base64.b64encode(key)
-	cipher_suite = Fernet(key)
-	try:
-		pwd = pwd.encode()
-		decPwd = cipher_suite.decrypt(pwd)
-	except:
-		pwd = bytes(pwd, 'utf-8')
-		decPwd = cipher_suite.decrypt(pwd)
-	decPwd = str(decPwd, encoding='utf-8')
-	return decPwd
-
 def wordDec(pwd, key):
 	try:
 		key = key.encode()
@@ -110,14 +91,3 @@ def wordDec(pwd, key):
 	decPwd = cipher_suite.decrypt(pwd)
 	decPwd = str(decPwd, encoding='utf-8')
 	return decPwd
-
-
-
-
-
-
-
-
-
-
-

@@ -15,7 +15,6 @@ from datetime import datetime
 # Check the group for user
 def has_group(user, group):
     return user.groups.filter(name=group).exists()
-
 def is_admin(user):
     return user.is_staff
 def is_doctor(user):
@@ -72,6 +71,12 @@ def guestRegister_patient(request):
 		form = UserCreationForm()
 	return render(request, 'guestRegister_patient.html', {'form':form})
 
+def logout_user(request):
+	if not request.user.is_authenticated:
+		return redirect('login')
+	logout(request)
+	return redirect('login')
+
 # View for admin
 
 @login_required(login_url='login')
@@ -93,12 +98,6 @@ def	index(request):
 		ap = decryptAppointment(ap)
 	d = {'d':doc.count(), 'p':patients.count(), 'a':appoint.count()}
 	return render(request, 'index.html', d)
-
-def logout_user(request):
-	if not request.user.is_authenticated:
-		return redirect('login')
-	logout(request)
-	return redirect('login')
 
 # Admin - patient views
 
@@ -390,7 +389,9 @@ def addAppointment(request):
 	# encrypt doc
 	for do in doc:
 		do = decryptDoctor(do)
-	# encrypt patient
+	# decrypt patient
+	for pa in patients:
+		pa = decryptPatient(pa)
 	# encrypt appoinntment
 	d = {'error':error, 'doc':doc, 'patients':patients}
 	return render(request, 'addAppointment.html', d)
