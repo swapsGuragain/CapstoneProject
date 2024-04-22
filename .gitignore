@@ -2,10 +2,12 @@
 
 *#
 
-Cap_project/settings.py
+*.
 
-migrations
-manage.py
+*Cap_project/settings.py
 
-healthcare/migrations
+*migrations
+*manage.py
+
+*healthcare/migrations
 

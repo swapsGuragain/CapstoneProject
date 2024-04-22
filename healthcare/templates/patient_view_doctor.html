@@ -16,6 +16,7 @@
                             <h6>First Name: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ doc.firstName }}</h6>
                             <h6>Last Name: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ doc.lastName }}</h6>
                             <h6>Speciality: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{ doc.speciality }}</h6>
+                            <h6>Contact: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{ doc.phone }}</h6>
                             <br><br>
                             <h5>Appointments:</h5>
                             <table id="datatablesSimple" class="table table-stripe">
@@ -29,14 +30,14 @@
                                 <tbody>
                                     {% for a in appot %}
                                     <tr>
-                                        <td><h6>{{ a.patient.firstName }} {{ a.patient.lastName }}</h6></td>
+                                        <td><h6>{{ a.doctor.firstName }} {{ a.doctor.lastName }}</h6></td>
                                         <td><h6>{{ a.date }}</h6></td>
                                         <td><h6>{{ a.time }}</h6></td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
-                            <br><br>
+                            <!-- <br><br>
                             <h5>Patients: </h5>
                             <table class="table table-stripe">
                                 <thead>
@@ -57,7 +58,7 @@
                                     {% endfor %}
                                 </tbody>
                                 
-                            </table>
+                            </table> -->
                            
                             
                     </div>

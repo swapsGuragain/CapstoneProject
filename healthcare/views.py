@@ -189,8 +189,8 @@ def addPatient(request):
 		healthHistory = request.POST.get('helhis')
 		medication = request.POST.get('medication')
 		appointment = request.POST.get('appointment')
-		patientId = request.POST.get('patient')
-		patient01 = User.objects.get(id=patientId)
+		# patientId = request.POST.get('patient')
+		# patient01 = User.objects.get(id=patientId)
 		# encrypt patient data here 
 		key_value = Fernet.generate_key()
 		fName = wordEnc(fName, key_value).decode()
@@ -205,7 +205,7 @@ def addPatient(request):
 		gender = getGenderBin(gender)
 		key_value = key_value.decode()
 		try:
-			Patient.objects.create(user = patient01, firstName = fName, lastName = lName, address = address, contact = contact, dob = dob, gender = gender, weight = weight, height = height, healthHistory = healthHistory, medication = medication, key_value = key_value)
+			Patient.objects.create( firstName = fName, lastName = lName, address = address, contact = contact, dob = dob, gender = gender, weight = weight, height = height, healthHistory = healthHistory, medication = medication, key_value = key_value)
 			error = "no"
 		except:
 			error = "yes"
@@ -270,16 +270,16 @@ def addDoctor(request):
 		spec = request.POST.get('spec')
 		phone = request.POST.get('phone')
 		doctorId = request.POST.get('doctor')
-		doctor01 =  User.objects.get(id=doctorId)
+		# doctor01 =  User.objects.get(id=doctorId)
 		# encrypt doc data here
 		key_value = Fernet.generate_key()
 		fName = wordEnc(fName, key_value).decode()
-		lName = wordEnc(fName, key_value).decode()
+		lName = wordEnc(lName, key_value).decode()
 		spec = wordEnc(spec, key_value).decode()
 		phone = wordEnc(phone, key_value).decode()
 		key_value = key_value.decode()
 		try:
-			doc = Doctor(user = doctor01, firstName = fName, lastName = lName, speciality = spec, phone = phone, key_value = key_value)
+			doc = Doctor(firstName = fName, lastName = lName, speciality = spec, phone = phone, key_value = key_value)
 			doc.save()
 			error = "no"
 		except:
@@ -489,16 +489,20 @@ def doctor_add_appointment(request):
 	error = ""
 	if not request.user.is_authenticated:
 		return redirect('login')
-	doc = Doctor.objects.get(user_id = request.user.id).id
+	doc = Doctor.objects.get(user_id = request.user.id)
 	patients = Patient.objects.all()
 	if request.method == "POST":
 		patientId = request.POST.get('patient')
 		date = request.POST.get('date')
 		time = request.POST.get('time')
-		doctor01 = Doctor.objects.filter(id=doc).first()
+		# doctor01 = Doctor.objects.filter(id=doc).first()
 		patient01 = Patient.objects.filter(id=patientId).first()
+		# encrypt appointment
+		key_value = Fernet.generate_key()
+		date = wordEnc(date, key_value).decode()
+		time = wordEnc(time, key_value).decode()
 		try:
-			Appointment.objects.create(doctor = doctor01, patient = patient01, date = date, time = time)
+			Appointment.objects.create(doctor = doc, patient = patient01, date = date, time = time, key_value = key_value.decode())
 			error = "no"
 		except:
 			error = "yes"
@@ -507,6 +511,8 @@ def doctor_add_appointment(request):
 	# decrypt patient
 	for pa in patients:
 		pa = decryptPatient(pa)
+	
+	print("Doctors:", doc, "\n\n Patients:", patients )
 	d = {'error':error, 'patients':patients}
 	return render(request, 'doctor_add_appointment.html', d)
 
@@ -634,7 +640,7 @@ def guestAddPatient(request, pk):
 		medication = request.POST.get('medication')
 		patient01 = User.objects.get(id=pk)
 		# encrypt pat data here 
-		key_value = Fernet.generate()
+		key_value = Fernet.generate_key()
 		fName = wordEnc(fName, key_value).decode()
 		lName = wordEnc(lName, key_value).decode()
 		address = wordEnc(address, key_value).decode()
