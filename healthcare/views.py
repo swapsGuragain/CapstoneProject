@@ -112,6 +112,7 @@ def register_user(request):
 			user_group = Group.objects.get(name='patient') 
 			user.groups.add(user_group)
 			messages.success(request, user.id)
+			print("register_user", user.id)
 			return redirect('addPatient_pk', user.id)
 	else:
 		form = UserCreationForm()
@@ -511,8 +512,6 @@ def doctor_add_appointment(request):
 	# decrypt patient
 	for pa in patients:
 		pa = decryptPatient(pa)
-	
-	print("Doctors:", doc, "\n\n Patients:", patients )
 	d = {'error':error, 'patients':patients}
 	return render(request, 'doctor_add_appointment.html', d)
 
